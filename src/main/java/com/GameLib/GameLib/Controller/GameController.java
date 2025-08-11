@@ -1,7 +1,7 @@
 package com.GameLib.GameLib.Controller;
 
 import com.GameLib.GameLib.Model.GameModel;
-import com.GameLib.GameLib.Model.SteamApiResponse;
+import com.GameLib.GameLib.Service.ClaudeService;
 import com.GameLib.GameLib.Service.GameService;
 import com.GameLib.GameLib.Service.SteamApiService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +20,18 @@ public class GameController {
     
     @Autowired
     private SteamApiService steamApiService;
+    
+    @Autowired
+    private ClaudeService claudeService;
 
     @GetMapping
     public List<GameModel> getAllGames() {
         return gameService.getAllGames();
+    }
+    
+    @GetMapping("/recent")
+    public List<GameModel> getRecentGames() {
+        return gameService.getRecentGames();
     }
 
     @GetMapping("/{id}")
@@ -44,5 +52,43 @@ public class GameController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+    
+    @PostMapping("/{appId}/generate-description")
+    public ResponseEntity<GameModel> generateDescription(@PathVariable Integer appId) {
+        Optional<GameModel> gameOptional = gameService.getGameByAppId(appId);
+        
+        if (gameOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        GameModel game = gameOptional.get();
+        
+        return claudeService.generateGameDescription(game)
+                .map(description -> {
+                    game.setDescription(description);
+                    GameModel savedGame = gameService.updateGame(game);
+                    return ResponseEntity.ok(savedGame);
+                })
+                .block();
+    }
+    
+    @PostMapping("/{appId}/generate-story-resume")
+    public ResponseEntity<GameModel> generateStoryResume(@PathVariable Integer appId) {
+        Optional<GameModel> gameOptional = gameService.getGameByAppId(appId);
+        
+        if (gameOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        GameModel game = gameOptional.get();
+        
+        return claudeService.generateGameStoryResume(game)
+                .map(storyResume -> {
+                    game.setStoryResume(storyResume);
+                    GameModel savedGame = gameService.updateGame(game);
+                    return ResponseEntity.ok(savedGame);
+                })
+                .block();
     }
 }

@@ -21,6 +21,7 @@ public class GameModel {
 
     // Created
     private String description;
+    private String storyResume;
     private BigDecimal averageRating;
     private BigDecimal userRating;
 
@@ -104,6 +105,14 @@ public class GameModel {
         this.description = description;
     }
 
+    public String getStoryResume() {
+        return storyResume;
+    }
+
+    public void setStoryResume(String storyResume) {
+        this.storyResume = storyResume;
+    }
+
     public BigDecimal getAverageRating() {
         return averageRating;
     }
@@ -119,4 +128,6 @@ public class GameModel {
     public void setUserRating(BigDecimal userRating) {
         this.userRating = userRating;
     }
+
+
 }

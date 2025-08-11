@@ -3,6 +3,9 @@ package com.GameLib.GameLib.Service;
 import com.GameLib.GameLib.Model.GameModel;
 import com.GameLib.GameLib.Repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +27,16 @@ public class GameService {
 
     public GameModel insertGame(GameModel model) {
         return gameRepository.insert(model);
+    }
+    
+    public GameModel updateGame(GameModel model) {
+        return gameRepository.save(model);
+    }
+    
+    public List<GameModel> getRecentGames() {
+        Sort sort = Sort.by(Sort.Direction.DESC, "rtime_last_played");
+        Pageable pageable = PageRequest.of(0, 10, sort);
+        return gameRepository.findRecentGames(0, pageable);
     }
 }
 

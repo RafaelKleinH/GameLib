@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,7 +39,7 @@ public class SteamApiService {
         }
         
         List<GameModel> gameModels = response.getResponse().getGames().stream()
-                .map(this::convertToGameModel)
+                .map(this::convertToGameModelWithExistingData)
                 .collect(Collectors.toList());
         
         return gameRepository.saveAll(gameModels);
@@ -61,8 +62,16 @@ public class SteamApiService {
         }
     }
     
-    private GameModel convertToGameModel(SteamGameResponse steamGame) {
-        GameModel gameModel = new GameModel();
+    private GameModel convertToGameModelWithExistingData(SteamGameResponse steamGame) {
+        Optional<GameModel> existingGame = gameRepository.findByAppid(steamGame.getAppid());
+        GameModel gameModel;
+        
+        if (existingGame.isPresent()) {
+            gameModel = existingGame.get();
+        } else {
+            gameModel = new GameModel();
+        }
+        
         gameModel.setAppid(steamGame.getAppid());
         gameModel.setName(steamGame.getName());
         gameModel.setImg_icon_url(steamGame.getImgIconUrl());
@@ -72,10 +81,7 @@ public class SteamApiService {
         gameModel.setPlaytime_linux_forever(steamGame.getPlaytimeLinuxForever());
         gameModel.setPlaytime_deck_forever(steamGame.getPlaytimeDeckForever());
         gameModel.setRtime_last_played(steamGame.getRtimeLastPlayed());
+        
         return gameModel;
-    }
-    
-    public SteamApiResponse getOwnedGamesRaw(String steamId) {
-        return fetchOwnedGamesFromSteam();
     }
 }
